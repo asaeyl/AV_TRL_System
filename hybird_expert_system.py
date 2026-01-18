@@ -21,11 +21,7 @@ import json
 import PyPDF2
 import docx
 from werkzeug.utils import secure_filename
-import openai
 import google.generativeai as genai
-
-# Configure OpenAI
-openai.api_key = os.getenv('OPENAI_API_KEY', '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')
 
 # ============================================
 # GEMINI LLM INTEGRATION
