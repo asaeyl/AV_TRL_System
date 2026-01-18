@@ -1,0 +1,2664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Vehicle TRL Assessment</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --infrastructure: #10b981;
+            --regulatory: #8b5cf6;
+            --technology: #f59e0b;
+            --public: #ec4899;
+            --data: #06b6d4;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --nascent: #ef4444;
+            --developing: #f59e0b;
+            --mature: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            grid-column: 1 / -1;
+            position: relative;
+        }
+
+
+        /* Rule Editor Button */
+        .rule-editor-btn {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .rule-editor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .rule-editor-btn .badge {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+         /* Explanation Editor Button */
+        .explanation-editor-btn {
+            position: absolute;
+            top: 30px;
+            right: 0;
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .explanation-editor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Rule Editor Panel */
+        .rule-panel {
+            position: fixed;
+            top: 0;
+            left: -450px;
+            width: 450px;
+            height: 100vh;
+            background: var(--dark);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .rule-panel.open {
+            left: 0;
+        }
+
+        .rule-panel-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .rule-panel-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-panel-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .close-panel-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .rule-panel-content {
+            padding: 20px;
+        }
+
+        .rule-section {
+            margin-bottom: 30px;
+        }
+
+        .rule-section-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rule-item {
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .rule-item.pending {
+            border-left-color: var(--developing);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .rule-text {
+            font-family: 'Courier New', monospace;
+            color: var(--data);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .rule-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+
+        .rule-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rule-accept-btn, .rule-reject-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .rule-accept-btn {
+            background: var(--mature);
+            color: white;
+        }
+
+        .rule-accept-btn:hover {
+            background: #059669;
+        }
+
+        .rule-reject-btn {
+            background: var(--nascent);
+            color: white;
+        }
+
+        .rule-reject-btn:hover {
+            background: #dc2626;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .logo {
+            display: flex;
+            margin-top: 70px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--technology);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(to right, #38bdf8, #22d3ee, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        /* Main Tabs - Assessment Type Selection */
+        .main-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            grid-column: 1 / -1;
+        }
+
+        .main-tab-btn {
+            background: var(--card-bg);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 200px;
+        }
+
+        .main-tab-btn i {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .main-tab-btn .tab-label {
+            font-size: 1rem;
+        }
+
+        .main-tab-btn .tab-desc {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .main-tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Dimension Tabs */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0 30px;
+            flex-wrap: wrap;
+            grid-column: 1 / -1;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            color: var(--light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .main-content-area, .tab-content {
+            display: none;
+        }
+
+        .main-content-area.active, .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* File Upload Area */
+        .file-upload-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--mature);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+
+        .file-info {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .file-info.show {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-info i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid;
+        }
+
+        .card-title.infrastructure { border-color: var(--infrastructure); }
+        .card-title.regulatory { border-color: var(--regulatory); }
+        .card-title.technology { border-color: var(--technology); }
+        .card-title.public { border-color: var(--public); }
+        .card-title.data { border-color: var(--data); }
+
+        .dimension-description {
+            color: var(--gray);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .question {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .infrastructure .question { border-color: var(--infrastructure); }
+        .regulatory .question { border-color: var(--regulatory); }
+        .technology .question { border-color: var(--technology); }
+        .public .question { border-color: var(--public); }
+        .data .question { border-color: var(--data); }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        .options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 20px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: var(--light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .option-btn.selected {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .nascent-btn.selected {
+            background: var(--nascent);
+            border-color: var(--nascent);
+        }
+
+        .developing-btn.selected {
+            background: var(--developing);
+            border-color: var(--developing);
+        }
+
+        .mature-btn.selected {
+            background: var(--mature);
+            border-color: var(--mature);
+        }
+
+        .option-btn i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .option-btn small {
+            display: block;
+            font-weight: normal;
+            opacity: 0.9;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Sidebar */
+        .results-sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .overall-score {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .overall-value {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #38bdf8, #22d3ee, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+
+        .confidence-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .confidence-high { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .confidence-medium { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .confidence-low { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+        .dimension-scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .dimension-score {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border-top: 5px solid;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dimension-score.infrastructure { border-color: var(--infrastructure); }
+        .dimension-score.technology { border-color: var(--technology); }
+        .dimension-score.data { border-color: var(--data); }
+        .dimension-score.regulatory { border-color: var(--regulatory); }
+        .dimension-score.public { border-color: var(--public); }
+
+        .dimension-score h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+
+        .infrastructure .score-value { color: var(--infrastructure); }
+        .technology .score-value { color: var(--technology); }
+        .data .score-value { color: var(--data); }
+        .regulatory .score-value { color: var(--regulatory); }
+        .public .score-value { color: var(--public); }
+
+        .progress-container {
+            height: 8px;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .infrastructure .progress-bar { background: var(--infrastructure); }
+        .technology .progress-bar { background: var(--technology); }
+        .data .progress-bar { background: var(--data); }
+        .regulatory .progress-bar { background: var(--regulatory); }
+        .public .progress-bar { background: var(--public); }
+
+        .dimension-confidence {
+            font-size: 0.75rem;
+            margin-top: 5px;
+        }
+
+        .recommendations {
+            margin-top: 20px;
+        }
+
+        .recommendation {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            font-size: 0.9rem;
+        }
+
+        .recommendation i {
+            font-size: 1.2rem;
+            margin-top: 2px;
+            color: var(--primary);
+        }
+
+        .answer-scale {
+            display: flex;
+            justify-content: space-around;
+            margin: 1px 0;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 10px;
+            grid-column: 1 / -1;
+        }
+
+        .scale-item {
+            text-align: center;
+            flex: 1;
+            padding: 15px;
+        }
+
+        .scale-item i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .scale-nascent i { color: var(--nascent); }
+        .scale-developing i { color: var(--developing); }
+        .scale-mature i { color: var(--mature); }
+
+        .scale-item h4 {
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .scale-item p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            line-height: 1.4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-sidebar {
+                position: static;
+                order: -1;
+            }
+
+            .rule-panel {
+                width: 100%;
+                left: -100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .options {
+                flex-direction: column;
+            }
+            
+            .option-btn {
+                min-width: auto;
+            }
+            
+            .answer-scale {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .tab-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .dimension-scores-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rule-editor-btn {
+                position: static;
+                margin-bottom: 15px;
+            }
+        }
+        .explanation-btn {
+            background: linear-gradient(to right, #10b981, #059669) !important;
+        }
+        
+        .explanation-btn:hover {
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4) !important;
+        }
+            
+        .explanation-panel {
+            position: fixed;
+            top: 0;
+            right: -550px;
+            width: 550px;
+            height: 100vh;
+            background: var(--dark);
+            box-shadow: -2px 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .explanation-panel.open {
+            right: 0;
+        }
+        
+        .explanation-panel .rule-panel-header {
+            background: linear-gradient(to right, #10b981, #059669);
+        }
+            
+        .explanation-summary {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+            border: 2px solid var(--mature);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .explanation-summary h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .explanation-summary .overall-trl {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #38bdf8, #22d3ee, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 15px 0;
+        }
+        
+        .calculation-formula {
+            background: rgba(15, 23, 42, 0.7);
+            border-left: 4px solid var(--data);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .dimension-explanation {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-top: 5px solid;
+        }
+
+        .dimension-score-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 10px;
+        }
+        
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .score-value-large {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        
+        .answer-breakdown {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .answer-breakdown h5 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--gray);
+        }
+        
+        .answer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .answer-label {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .answer-value {
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+       
+        .answer-value.nascent {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--nascent);
+        }
+
+        .answer-value.developing {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--developing);
+        }
+
+        .answer-value.mature {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--mature);
+        }
+
+        .active-rules-section {
+            margin-top: 20px;
+        }
+        
+        .active-rules-section h5 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .rule-match {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--mature);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .rule-match.no-match {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--developing);
+        }
+        
+        .rule-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .rule-status.matched {
+            background: var(--mature);
+            color: white;
+        }
+        
+        .rule-status.not-matched {
+            background: var(--gray);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 1024px) {
+            .explanation-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Overlay for Rule Panel -->
+    <div class="overlay" id="overlay" onclick="closeRulePanel()"></div>
+
+    <!-- Rule Editor Panel -->
+    <div class="rule-panel" id="rulePanel">
+        <div class="rule-panel-header">
+            <h2><i class="fas fa-cogs"></i> Rule Management</h2>
+            <button class="close-panel-btn" onclick="closeRulePanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="rule-panel-content">
+            <!-- Default Rules Section -->
+            <div class="rule-section">
+                <div class="rule-section-title">
+                    <i class="fas fa-check-circle" style="color: var(--mature);"></i>
+                    <span>Active Rules (<span id="activeRuleCount">0</span>)</span>
+                </div>
+                <div id="activeRulesList"></div>
+            </div>
+
+            <!-- Pending Rules Section -->
+            <div class="rule-section">
+                <div class="rule-section-title">
+                    <i class="fas fa-clock" style="color: var(--developing);"></i>
+                    <span>Pending Review (<span id="pendingRuleCount">0</span>)</span>
+                </div>
+                <div id="pendingRulesList">
+                    <p style="color: var(--gray); font-size: 0.9rem; text-align: center; padding: 20px;">
+                        No pending rules. Upload files to generate new rules for review.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Explanation Panel -->
+    <div class="side-panel explanation-panel" id="explanationPanel">
+        <div class="panel-header">
+            <h2>TRL Explanation</h2>
+            <button class="close-panel-btn" onclick="closeExplanationPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="panel-content" id="explanationContent">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No Assessment Yet</h3>
+                <p>Complete dimension assessments to see detailed explanations of your TRL scores, active rules, and calculation methodology.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <!-- Rule Editor Button -->
+            <button class="rule-editor-btn" onclick="openRulePanel()">
+                <i class="fas fa-cogs"></i>
+                <span>Rule Management</span>
+                <span class="badge" id="pendingBadge">0</span>
+            </button>
+
+             <!-- Explanation Button -->
+            <button class="explanation-editor-btn" onclick="openExplanationPanel()">
+                <span>View Explanation</span>
+            </button>
+
+            <div class="logo">
+                <div>
+                    <h1>Autonomous Vehicle TRL Assessment System </h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Answer Scale Guide
+        <div class="answer-scale">
+            <div class="scale-item scale-nascent">
+                <i class="fas fa-seedling"></i>
+                <h4>Nascent</h4>
+                <p>Initial stages, minimal development, early research phase</p>
+            </div>
+            <div class="scale-item scale-developing">
+                <i class="fas fa-sync-alt"></i>
+                <h4>Developing</h4>
+                <p>Progress underway, partial deployment, pilot programs</p>
+            </div>
+            <div class="scale-item scale-mature">
+                <i class="fas fa-check-circle"></i>
+                <h4>Mature</h4>
+                <p>Well-established, operational, widespread deployment</p>
+            </div>
+        </div> -->
+
+        <!-- Main Assessment Type Tabs -->
+        <div class="main-tabs">
+            <button class="main-tab-btn active" data-main-tab="assessment-questions">
+                <i class="fas fa-clipboard-list"></i>
+                <span class="tab-label">Assessment Questions</span>
+                <span class="tab-desc">Manual evaluation</span>
+            </button>
+            <button class="main-tab-btn" data-main-tab="pestle-analysis">
+                <i class="fas fa-file-upload"></i>
+                <span class="tab-label">PESTLE Analysis</span>
+                <span class="tab-desc">file upload (Optional)</span>
+            </button>
+            <button class="main-tab-btn" data-main-tab="swot-analysis">
+                <i class="fas fa-file-upload"></i>
+                <span class="tab-label">SWOT Analysis</span>
+                <span class="tab-desc">file upload (Optional)</span>
+            </button>
+        </div>
+
+        <!-- Assessment Questions Content (Default) -->
+        <div class="main-content-area active" id="assessment-questions">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="infrastructure">
+                    <i class="fas fa-road"></i> Infrastructure
+                </button>
+                <button class="tab-btn" data-tab="technology">
+                    <i class="fas fa-microchip"></i> Technology
+                </button>
+                <button class="tab-btn" data-tab="data">
+                    <i class="fas fa-database"></i> Data & Connectivity
+                </button>
+                <button class="tab-btn" data-tab="regulatory">
+                    <i class="fas fa-gavel"></i> Regulatory
+                </button>
+                <button class="tab-btn" data-tab="public">
+                    <i class="fas fa-users"></i> Societal & Market
+                </button>
+            </div>
+
+            <div class="main-content">
+                <!-- Infrastructure Readiness -->
+                <div class="tab-content active" id="infrastructure-content">
+                    <div class="card infrastructure">
+                        <h2 class="card-title infrastructure">
+                            <i class="fas fa-road"></i> Infrastructure Readiness
+                        </h2>
+                        <p class="dimension-description">
+                            Assess the physical and digital infrastructure maturity for autonomous vehicle deployment.
+                        </p>
+
+                        <div class="questions-container">
+                            {%for q in dimension['Infrastructure Readiness']%}
+                            <div class="question">
+                                <div class="question-text">{{q}}</div>
+                                <div class="options">
+                                    <button class="option-btn nascent-btn" data-question="infra{{loop.index}}" data-value="1">
+                                        <i class="fas fa-seedling"></i> Nascent
+                                    </button>
+                                    <button class="option-btn developing-btn" data-question="infra{{loop.index}}" data-value="2">
+                                        <i class="fas fa-sync-alt"></i> Developing
+                                    </button>
+                                    <button class="option-btn mature-btn" data-question="infra{{loop.index}}" data-value="3">
+                                        <i class="fas fa-check-circle"></i> Mature
+                                    </button>
+                                </div>
+                            </div>
+                            {%endfor%}
+                        </div>
+
+                        <button class="btn" onclick="submitDimension('infra')" id="infraSubmit">
+                            <i class="fas fa-calculator"></i> Assess Infrastructure Readiness
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Technology Readiness -->
+                <div class="tab-content" id="technology-content">
+                    <div class="card technology">
+                        <h2 class="card-title technology">
+                            <i class="fas fa-microchip"></i> Technology Readiness
+                        </h2>
+                        <p class="dimension-description">
+                            Evaluate the maturity of autonomous vehicle technology and development progress.
+                        </p>
+
+                        <div class="questions-container">
+                            {%for q in dimension['Technology Readiness']%}
+                            <div class="question">
+                                <div class="question-text">{{q}}</div>
+                                <div class="options">
+                                    <button class="option-btn nascent-btn" data-question="tech{{loop.index}}" data-value="1">
+                                        <i class="fas fa-seedling"></i> Nascent
+                                    </button>
+                                    <button class="option-btn developing-btn" data-question="tech{{loop.index}}" data-value="2">
+                                        <i class="fas fa-sync-alt"></i> Developing
+                                    </button>
+                                    <button class="option-btn mature-btn" data-question="tech{{loop.index}}" data-value="3">
+                                        <i class="fas fa-check-circle"></i> Mature
+                                    </button>
+                                </div>
+                            </div>
+                            {%endfor%}
+                        </div>
+
+                        <button class="btn" onclick="submitDimension('tech')" id="techSubmit">
+                            <i class="fas fa-calculator"></i> Assess Technology Readiness
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Data & Connectivity Readiness -->
+                <div class="tab-content" id="data-content">
+                    <div class="card data">
+                        <h2 class="card-title data">
+                            <i class="fas fa-database"></i> Data & Connectivity Readiness
+                        </h2>
+                        <p class="dimension-description">
+                            Evaluate data governance, connectivity infrastructure, and regulatory frameworks.
+                        </p>
+
+                        <div class="questions-container">
+                            {%for q in dimension['Data & Connectivity Readiness']%}
+                            <div class="question">
+                                <div class="question-text">{{q}}</div>
+                                <div class="options">
+                                    <button class="option-btn nascent-btn" data-question="data{{loop.index}}" data-value="1">
+                                        <i class="fas fa-seedling"></i> Nascent
+                                    </button>
+                                    <button class="option-btn developing-btn" data-question="data{{loop.index}}" data-value="2">
+                                        <i class="fas fa-sync-alt"></i> Developing
+                                    </button>
+                                    <button class="option-btn mature-btn" data-question="data{{loop.index}}" data-value="3">
+                                        <i class="fas fa-check-circle"></i> Mature
+                                    </button>
+                                </div>
+                            </div>
+                            {%endfor%}
+                        </div>
+
+                        <button class="btn" onclick="submitDimension('data')" id="dataSubmit">
+                            <i class="fas fa-calculator"></i> Assess Data & Connectivity Readiness
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Regulatory & Policy Readiness -->
+                <div class="tab-content" id="regulatory-content">
+                    <div class="card regulatory">
+                        <h2 class="card-title regulatory">
+                            <i class="fas fa-gavel"></i> Regulatory & Policy Readiness
+                        </h2>
+                        <p class="dimension-description">
+                            Assess the legal and policy framework supporting autonomous vehicle deployment.
+                        </p>
+
+                        <div class="questions-container">
+                            {%for q in dimension['Regulatory & Policy Readiness']%}
+                            <div class="question">
+                                <div class="question-text">{{q}}</div>
+                                <div class="options">
+                                    <button class="option-btn nascent-btn" data-question="reg{{loop.index}}" data-value="1">
+                                        <i class="fas fa-seedling"></i> Nascent
+                                    </button>
+                                    <button class="option-btn developing-btn" data-question="reg{{loop.index}}" data-value="2">
+                                        <i class="fas fa-sync-alt"></i> Developing
+                                    </button>
+                                    <button class="option-btn mature-btn" data-question="reg{{loop.index}}" data-value="3">
+                                        <i class="fas fa-check-circle"></i> Mature
+                                    </button>
+                                </div>
+                            </div>
+                            {%endfor%}
+                        </div>
+
+                        <button class="btn" onclick="submitDimension('reg')" id="regSubmit">
+                            <i class="fas fa-calculator"></i> Assess Regulatory Readiness
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Societal & Market Readiness -->
+                <div class="tab-content" id="public-content">
+                    <div class="card public">
+                        <h2 class="card-title public">
+                            <i class="fas fa-users"></i> Societal & Market Readiness
+                        </h2>
+                        <p class="dimension-description">
+                            Evaluate societal readiness, public trust, and market adoption potential.
+                        </p>
+
+                        <div class="questions-container">
+                            {%for q in dimension['Societal & Market Readiness']%}
+                            <div class="question">
+                                <div class="question-text">{{q}}</div>
+                                <div class="options">
+                                    <button class="option-btn nascent-btn" data-question="soc{{loop.index}}" data-value="1">
+                                        <i class="fas fa-seedling"></i> Nascent
+                                    </button>
+                                    <button class="option-btn developing-btn" data-question="soc{{loop.index}}" data-value="2">
+                                        <i class="fas fa-sync-alt"></i> Developing
+                                    </button>
+                                    <button class="option-btn mature-btn" data-question="soc{{loop.index}}" data-value="3">
+                                        <i class="fas fa-check-circle"></i> Mature
+                                    </button>
+                                </div>
+                            </div>
+                            {%endfor%}
+                        </div>
+
+                        <button class="btn" onclick="submitDimension('soc')" id="socSubmit">
+                            <i class="fas fa-calculator"></i> Assess Societal Readiness
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTLE Analysis Content (File Upload) -->
+        <div class="main-content-area" id="pestle-analysis">
+            <div class="file-upload-section">
+                <h2 style="font-size: 1.8rem; margin-bottom: 20px;">
+                    <i class="fas fa-file-upload"></i> PESTLE Document Analysis
+                </h2>
+                <p style="color: var(--gray); margin-bottom: 20px;">
+                    Upload a document for AI-powered PESTLE analysis. The system will extract Political, Economic, Social, Technological, Legal, and Environmental factors, then generate rules for review.
+                </p>
+
+                <input type="file" id="pestleFileInput" accept=".txt,.pdf,.doc,.docx" class="hidden">
+                <div class="upload-area" id="pestleUploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Click or Drag PESTLE Document Here</h3>
+                    <p style="color: var(--gray); margin-top: 10px;">Supports: TXT, PDF, DOC, DOCX (Max 50MB)</p>
+                </div>
+
+                <div class="file-info" id="pestleFileInfo">
+                    <i class="fas fa-file-alt"></i>
+                    <div>
+                        <h4 id="pestleFileName">document.pdf</h4>
+                        <p id="pestleFileSize" style="color: var(--gray); font-size: 0.9rem;">1.2 MB</p>
+                    </div>
+                </div>
+
+                <button class="btn" id="analyzePestleBtn" disabled style="width: 100%;">
+                    <i class="fas fa-brain"></i> Analyze PESTLE Document with AI
+                </button>
+
+                <div id="pestleLoadingDiv" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing document with AI... This may take a moment.</p>
+                </div>
+
+                <div id="pestleResultsDiv" class="hidden" style="margin-top: 30px;">
+                    <div class="card">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 20px;">
+                            <i class="fas fa-check-circle" style="color: var(--mature);"></i> PESTLE Analysis Complete
+                        </h3>
+                        <div id="pestleResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SWOT Analysis Content (File Upload) -->
+        <div class="main-content-area" id="swot-analysis">
+            <div class="file-upload-section">
+                <h2 style="font-size: 1.8rem; margin-bottom: 20px;">
+                    <i class="fas fa-file-upload"></i> SWOT Document Analysis
+                </h2>
+                <p style="color: var(--gray); margin-bottom: 20px;">
+                    Upload a document for AI-powered SWOT analysis. The system will extract Strengths, Weaknesses, Opportunities, and Threats, then generate rules for review.
+                </p>
+
+                <input type="file" id="swotFileInput" accept=".txt,.pdf,.doc,.docx" class="hidden">
+                <div class="upload-area" id="swotUploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Click or Drag SWOT Document Here</h3>
+                    <p style="color: var(--gray); margin-top: 10px;">Supports: TXT, PDF, DOC, DOCX (Max 50MB)</p>
+                </div>
+
+                <div class="file-info" id="swotFileInfo">
+                    <i class="fas fa-file-alt"></i>
+                    <div>
+                        <h4 id="swotFileName">document.pdf</h4>
+                        <p id="swotFileSize" style="color: var(--gray); font-size: 0.9rem;">1.2 MB</p>
+                    </div>
+                </div>
+
+                <button class="btn" id="analyzeSwotBtn" disabled style="width: 100%;">
+                    <i class="fas fa-brain"></i> Analyze SWOT Document with AI
+                </button>
+
+                <div id="swotLoadingDiv" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing document with AI... This may take a moment.</p>
+                </div>
+
+                <div id="swotResultsDiv" class="hidden" style="margin-top: 30px;">
+                    <div class="card">
+                        <h3 style="font-size: 1.5rem; margin-bottom: 20px;">
+                            <i class="fas fa-check-circle" style="color: var(--mature);"></i> SWOT Analysis Complete
+                        </h3>
+                        <div id="swotResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Sidebar -->
+        <div class="results-sidebar">
+            <div class="overall-score">
+                <h2><i class="fas fa-chart-line"></i> Overall TRL Score</h2>
+                <div class="overall-value" id="overallScore">TRL 0</div>
+                <div id="confidenceDisplay" class="confidence-indicator confidence-low">
+                    Not Assessed
+                </div>
+                <p>Complete assessments to see overall TRL</p>
+            </div>
+
+            <div class="dimension-scores-grid">
+                <div class="dimension-score infrastructure" id="infraResult" style="display: none;">
+                    <h3><i class="fas fa-road"></i> Infrastructure</h3>
+                    <div class="score-value" id="infraScore">TRL 0</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="infraProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-confidence confidence-indicator confidence-low" id="infraConfidence">Not assessed</div>
+                </div>
+
+                <div class="dimension-score technology" id="techResult" style="display: none;">
+                    <h3><i class="fas fa-microchip"></i> Technology</h3>
+                    <div class="score-value" id="techScore">TRL 0</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="techProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-confidence confidence-indicator confidence-low" id="techConfidence">Not assessed</div>
+                </div>
+
+                <div class="dimension-score data" id="dataResult" style="display: none;">
+                    <h3><i class="fas fa-database"></i>Data & Connectivity</h3>
+                    <div class="score-value" id="dataScore">TRL 0</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="dataProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-confidence confidence-indicator confidence-low" id="dataConfidence">Not assessed</div>
+                </div>
+
+                <div class="dimension-score regulatory" id="regResult" style="display: none;">
+                    <h3><i class="fas fa-gavel"></i> Regulatory</h3>
+                    <div class="score-value" id="regScore">TRL 0</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="regProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-confidence confidence-indicator confidence-low" id="regConfidence">Not assessed</div>
+                </div>
+
+                <div class="dimension-score public" id="socResult" style="display: none;">
+                    <h3><i class="fas fa-users"></i> Societal & Market</h3>
+                    <div class="score-value" id="socScore">TRL 0</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="socProgress" style="width: 0%"></div>
+                    </div>
+                    <div class="dimension-confidence confidence-indicator confidence-low" id="socConfidence">Not assessed</div>
+                </div>
+            </div>
+
+            <div class="recommendations" id="recommendationsSection" style="display: none;">
+                <h3 style="margin-bottom: 15px;"><i class="fas fa-lightbulb"></i> Key Recommendations</h3>
+                <div id="recommendationsList"></div>
+            </div>
+
+            <button class="btn" onclick="resetAssessment()" style="background: linear-gradient(to right, #ef4444, #dc2626); width: 100%; margin-top: 20px;">
+                <i class="fas fa-redo"></i> Reset All Assessments
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:5000/api';
+
+        // Global State
+        let userAnswers = {
+            infra: { infra1: null, infra2: null, infra3: null, infra4: null, infra5: null },
+            tech: { tech1: null, tech2: null, tech3: null },
+            data: { data1: null, data2: null, data3: null },
+            reg: { reg1: null, reg2: null, reg3: null, reg4: null },
+            soc: { soc1: null, soc2: null, soc3: null, soc4: null, soc5: null }
+        };
+
+        let trlCollector = {};
+        let defaultRules = [];
+        let pendingRules = [];
+        let activeRules = [];
+
+        let explanationData = {
+            overall: { trl: "TRL 0", numeric: 0, confidence: 0 },
+            dimensions: {}
+        };
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            showTab('infrastructure');
+            loadDefaultRules();
+        });
+
+        // Initialize all event listeners
+        function initializeEventListeners() {
+            // Main tabs navigation
+            document.querySelectorAll('.main-tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const mainTab = this.getAttribute('data-main-tab');
+                    switchMainTab(mainTab);
+                });
+            });
+
+            // Dimension tabs navigation
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    showTab(tabName);
+                });
+            });
+
+            // Option button clicks (for assessment questions)
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const question = this.getAttribute('data-question');
+                    const value = parseInt(this.getAttribute('data-value'));
+                    
+                    let dimension = 'infra';
+                    if (question.startsWith('tech')) dimension = 'tech';
+                    if (question.startsWith('data')) dimension = 'data';
+                    if (question.startsWith('reg')) dimension = 'reg';
+                    if (question.startsWith('soc')) dimension = 'soc';
+                    
+                    this.parentElement.querySelectorAll('.option-btn').forEach(b => {
+                        b.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    
+                    userAnswers[dimension][question] = value;
+                    updateSubmitButton(dimension);
+                });
+            });
+
+            // File upload listeners
+            setupFileUpload('pestle');
+            setupFileUpload('swot');
+        }
+
+        // Main Tab Switching
+        function switchMainTab(mainTab) {
+            document.querySelectorAll('.main-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-main-tab="${mainTab}"]`).classList.add('active');
+            
+            document.querySelectorAll('.main-content-area').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(mainTab).classList.add('active');
+        }
+
+        // Dimension Tab Switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeTab = document.getElementById(`${tabName}-content`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            
+            const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        // Update submit button state
+        function updateSubmitButton(dimension) {
+            const submitBtn = document.getElementById(`${dimension}Submit`);
+            const answers = userAnswers[dimension];
+            const allAnswered = Object.values(answers).every(val => val !== null);
+            
+            if (allAnswered) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fas fa-calculator"></i> Assess ${getDimensionName(dimension)} Readiness`;
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<i class="fas fa-lock"></i> Answer All Questions`;
+            }
+        }
+
+        function getDimensionName(dimension) {
+            const names = {
+                'infra': 'Infrastructure',
+                'tech': 'Technology',
+                'data': 'Data & Connectivity', 
+                'reg': 'Regulatory',
+                'soc': 'Societal & Market'
+            };
+            return names[dimension] || dimension;
+        }
+
+        // Submit dimension assessment
+        async function submitDimension(dimension) {
+
+            const answers = userAnswers[dimension];
+            const answerValues = Object.values(answers);
+            
+            // Prepare data for submission
+            const submissionData = {
+                data: answerValues,
+                trl_type: dimension
+            };
+
+            try {
+                const response = await fetch('/trl_partial_service', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(submissionData)
+                });
+
+                const result = await response.json();
+
+                if (result.results) {
+                    // Update UI with results
+                    updateDimensionResult(dimension, result);
+                    updateOverallDisplay(result);
+
+                    // Store data for explanation panel
+                    
+                    explanationData.dimensions[dimension] = {
+                        trl: result.results,
+                        numeric: result.overall_num || trlToNumeric(result.results),
+                        confidence: result.confidence || 0.5,
+                        reasoning_type: result.reasoning_type || 'enhanced_fuzzy',
+                        answers: answers,
+                        recommendations: result.recommender || []
+                    };
+                    
+                    // Update overall calculation
+                    updateOverallExplanation();
+            
+                    // Update explanation panel
+                    updateExplanationPanel();
+                    
+                    // Show success message
+                    showNotification(`${getDimensionName(dimension)} assessment completed!`, 'success');
+                    
+                    // Move to next tab if available
+                    if (dimension === 'infra') showTab('technology');
+                    else if (dimension === 'tech') showTab('data');
+                    else if (dimension === 'data') showTab('regulatory');
+                    else if (dimension === 'reg') showTab('public');
+                } else {
+                    showNotification('Error processing assessment', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error: ' + error.message, 'error');
+            }
+        }
+
+        // Update dimension result display
+        function updateDimensionResult(dimension, result) {
+            
+            const resultElement = document.getElementById(`${dimension}Result`);
+            const scoreElement = document.getElementById(`${dimension}Score`);
+            const progressElement = document.getElementById(`${dimension}Progress`);
+            const confidenceElement = document.getElementById(`${dimension}Confidence`);
+            
+            if (resultElement && scoreElement && progressElement) {
+                resultElement.style.display = 'flex';
+                scoreElement.textContent = result.results;
+                
+                const progress = (result.overall_num / 9) * 100;
+                progressElement.style.width = `${progress}%`;
+                
+                if (confidenceElement) {
+                    const confidence = result.confidence || 0;
+                    confidenceElement.textContent = `${Math.round(confidence * 100)}% confidence`;
+                    
+                    if (confidence >= 0.7) {
+                        confidenceElement.className = 'dimension-confidence confidence-indicator confidence-high';
+                    } else if (confidence >= 0.5) {
+                        confidenceElement.className = 'dimension-confidence confidence-indicator confidence-medium';
+                    } else {
+                        confidenceElement.className = 'dimension-confidence confidence-indicator confidence-low';
+                    }
+                }
+            }
+        }
+
+        // Update overall display
+        function updateOverallDisplay(result) {
+            const overallScore = document.getElementById('overallScore');
+            const confidenceDisplay = document.getElementById('confidenceDisplay');
+            const recommendationsSection = document.getElementById('recommendationsSection');
+            const recommendationsList = document.getElementById('recommendationsList');
+            
+            if (overallScore) {
+                overallScore.textContent = result.overall;
+            }
+            
+            if (confidenceDisplay && result.confidence) {
+                const confidence = result.confidence;
+                confidenceDisplay.textContent = `${Math.round(confidence * 100)}% confidence`;
+                
+                if (confidence >= 0.7) {
+                    confidenceDisplay.className = 'confidence-indicator confidence-high';
+                } else if (confidence >= 0.5) {
+                    confidenceDisplay.className = 'confidence-indicator confidence-medium';
+                } else {
+                    confidenceDisplay.className = 'confidence-indicator confidence-low';
+                }
+            }
+            
+            if (recommendationsSection && recommendationsList && result.recommender) {
+                recommendationsSection.style.display = 'block';
+                recommendationsList.innerHTML = '';
+                
+                result.recommender.forEach(rec => {
+                    const recElement = document.createElement('div');
+                    recElement.className = 'recommendation';
+                    recElement.innerHTML = `
+                        <i class="fas fa-chevron-right"></i>
+                        <div>${rec}</div>
+                    `;
+                    recommendationsList.appendChild(recElement);
+                });
+            }
+        }
+
+        // Reset assessment
+        async function resetAssessment() {
+            if (confirm('Are you sure you want to reset all assessments? All your progress will be lost.')) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/reset_assessment`, {
+                        method: 'POST'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.querySelectorAll('.option-btn').forEach(btn => {
+                            btn.classList.remove('selected');
+                        });
+                        
+                        document.querySelectorAll('.dimension-score').forEach(el => {
+                            el.style.display = 'none';
+                        });
+                        
+                        document.getElementById('overallScore').textContent = 'TRL 0';
+                        document.getElementById('confidenceDisplay').textContent = 'Not Assessed';
+                        document.getElementById('confidenceDisplay').className = 'confidence-indicator confidence-low';
+                        
+                        document.getElementById('recommendationsSection').style.display = 'none';
+                        
+                        // Reset user answers
+                        for (let dimension in userAnswers) {
+                            for (let question in userAnswers[dimension]) {
+                                userAnswers[dimension][question] = null;
+                            }
+                            updateSubmitButton(dimension);
+                        }
+                        
+                        showTab('infrastructure');
+                        showNotification('Assessment reset successfully!', 'success');
+                    }
+                } catch (error) {
+                    showNotification('Error resetting assessment', 'error');
+                }
+            }
+        }
+
+        // File Upload Setup
+        function setupFileUpload(type) {
+            const uploadArea = document.getElementById(`${type}UploadArea`);
+            const fileInput = document.getElementById(`${type}FileInput`);
+            const analyzeBtn = document.getElementById(`analyze${type.charAt(0).toUpperCase() + type.slice(1)}Btn`);
+            const fileInfo = document.getElementById(`${type}FileInfo`);
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    handleFileSelection(type, e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    handleFileSelection(type, e.target.files[0]);
+                }
+            });
+
+            analyzeBtn.addEventListener('click', () => analyzeFile(type));
+        }
+
+        function handleFileSelection(type, file) {
+            document.getElementById(`${type}FileName`).textContent = file.name;
+            document.getElementById(`${type}FileSize`).textContent = (file.size / 1024).toFixed(2) + ' KB';
+            document.getElementById(`${type}FileInfo`).classList.add('show');
+            document.getElementById(`analyze${type.charAt(0).toUpperCase() + type.slice(1)}Btn`).disabled = false;
+        }
+
+        async function analyzeFile(type) {
+            const fileInput = document.getElementById(`${type}FileInput`);
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+
+            const loadingDiv = document.getElementById(`${type}LoadingDiv`);
+            const resultsDiv = document.getElementById(`${type}ResultsDiv`);
+            const analyzeBtn = document.getElementById(`analyze${type.charAt(0).toUpperCase() + type.slice(1)}Btn`);
+
+            analyzeBtn.disabled = true;
+            loadingDiv.classList.remove('hidden');
+            resultsDiv.classList.add('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('framework', type.toUpperCase());
+
+                const response = await fetch(`${API_BASE_URL}/upload-file`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayFileResults(type, result);
+                    
+                    // Add generated rules to pending review
+                    if (result.generatedRules && result.generatedRules.length > 0) {
+                        result.generatedRules.forEach(rule => {
+                            pendingRules.push({
+                                rule: rule,
+                                framework: type.toUpperCase(),
+                                source: `Document Analysis: ${file.name}`,
+                                confidence: result.confidence || 0.8,
+                                timestamp: new Date().toISOString()
+                            });
+                        });
+                        updateRulePanel();
+                        showNotification(`${result.generatedRules.length} new rules generated for review`, 'success');
+                    }
+
+                    // Update TRL scores with file analysis
+                    updateTRLFromFileAnalysis(type, result);
+                } else {
+                    showNotification('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Failed to analyze file. Make sure the Flask server is running.', 'error');
+            } finally {
+                loadingDiv.classList.add('hidden');
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayFileResults(type, result) {
+            const resultsDiv = document.getElementById(`${type}ResultsDiv`);
+            const resultsContent = document.getElementById(`${type}ResultsContent`);
+
+            let html = `
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--mature); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 10px;">Analysis Summary</h4>
+                    <p style="color: var(--gray);">${result.summary || 'Analysis completed successfully'}</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+                    <div style="background: rgba(37, 99, 235, 0.1); border: 1px solid var(--primary); border-radius: 10px; padding: 15px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 5px;">Overall Score</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);">${result.overallScore || result.positionScore || 'N/A'}</div>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--mature); border-radius: 10px; padding: 15px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 5px;">Confidence</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--mature);">${Math.round((result.confidence || 0) * 100)}%</div>
+                    </div>
+                    <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid var(--regulatory); border-radius: 10px; padding: 15px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 5px;">New Rules</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--regulatory);">${(result.generatedRules || []).length}</div>
+                    </div>
+                </div>
+            `;
+
+            if (result.recommendations && result.recommendations.length > 0) {
+                html += `
+                    <div>
+                        <h4 style="font-size: 1.2rem; margin-bottom: 15px;">
+                            <i class="fas fa-lightbulb"></i> AI Recommendations
+                        </h4>
+                `;
+                result.recommendations.forEach(rec => {
+                    html += `
+                        <div class="recommendation">
+                            <i class="fas fa-chevron-right"></i>
+                            <div>${rec}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            resultsContent.innerHTML = html;
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function updateTRLFromFileAnalysis(type, result) {
+            // This would update TRL scores based on file analysis
+            // Combining with existing questionnaire scores
+            showNotification(`TRL scores updated with ${type.toUpperCase()} analysis`, 'success');
+        }
+
+        // Rule Panel Management
+        function openRulePanel() {
+            document.getElementById('rulePanel').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+        }
+
+        function closeRulePanel() {
+            document.getElementById('rulePanel').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+        
+        function openExplanationPanel() {
+            document.getElementById('explanationPanel').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+        }
+
+        function closeExplanationPanel() {
+            document.getElementById('explanationPanel').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+        
+        function closeAllPanels() {
+            closeRulePanel();
+            closeExplanationPanel();
+        }
+
+
+        function loadDefaultRules() {
+            // Load default rules
+            defaultRules = [
+                {
+                    id: "INFRA-1",
+                    rule: 'When all infrastructure elements are fully mature, THEN Infrastructure is deployment-ready = (TRL 8-9)',
+                    framework: 'Infrastructure Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "INFRA-2",
+                    rule: 'When infrastructure is strong but safety standards lag behind, THEN Standards gap is tractable barrier = (TRL 7-8)',
+                    framework: 'Infrastructure Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "INFRA-3",
+                    rule: 'When infrastructure development is at early stages across all areas, THEN Comprehensive infrastructure build-out needed = (TRL 2-3)',
+                    framework: 'Infrastructure Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "INFRA-4",
+                    rule: 'When digital infrastructure leads physical infrastructure, THEN Strong connectivity enables smart planning = (TRL 4-5)',
+                    framework: 'Infrastructure Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "TECH-1",
+                    rule: 'When technology is advanced but safety validation has gaps, THEN Safety gaps prevent deployment = (TRL 5-6)',
+                    framework: 'Technology Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "TECH-2",
+                    rule: 'When technology and safety are proven but industry coordination is unclear, THEN Organizational gap, not technical = (TRL 7-8)',
+                    framework: 'Technology Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "TECH-3",
+                    rule: 'When technology development is at fundamental research stage, THEN Basic research phase = (TRL 1-2)',
+                    framework: 'Technology Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "TECH-4",
+                    rule: 'When technology is progressing steadily across all areas, THEN Balanced maturation path = (TRL 6-7)',
+                    framework: 'Technology Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "DATA-1",
+                    rule: 'When data infrastructure and governance are fully established, THEN Comprehensive data ecosystem ready = (TRL 7-8)',
+                    framework: 'Data & Connectivity Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "DATA-2",
+                    rule: 'When connectivity is strong but data governance is missing, THEN Governance gap creates legal risk = (TRL 5-6)',
+                    framework: 'Data & Connectivity Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "DATA-3",
+                    rule: 'When data and connectivity infrastructure are at early stages, THEN Systematic infrastructure development needed = (TRL 1-2)',
+                    framework: 'Data & Connectivity Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "DATA-4",
+                    rule: 'When data policy is ready but network infrastructure lags, THEN Policy-first approach enables acceleration = (TRL 4-5)',
+                    framework: 'Data & Connectivity Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "REG-1",
+                    rule: 'When regulatory environment is comprehensively established, THEN Regulatory system deployment-ready = (TRL 8-9)',
+                    framework: 'Regulatory & Policy Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "REG-2",
+                    rule: 'When vision and policy are strong but implementation is pending, THEN Implementation validation needed = (TRL 5-6)',
+                    framework: 'Regulatory & Policy Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "REG-3",
+                    rule: 'When regulatory development is at foundational stage, THEN Build regulatory foundation = (TRL 1-2)',
+                    framework: 'Regulatory & Policy Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "REG-4",
+                    rule: 'When pilot programs are running ahead of formal policy, THEN Legal uncertainty from policy gap = (TRL 4-5)',
+                    framework: 'Regulatory & Policy Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "SOC-1",
+                    rule: 'When societal readiness is growing systematically, THEN Systematic acceptance building = (TRL 5-6)',
+                    framework: 'Societal & Market Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "SOC-2",
+                    rule: 'When public awareness exists but trust and viability are unclear, THEN Early awareness stage = (TRL 3-4)',
+                    framework: 'Societal & Market Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "SOC-3",
+                    rule: 'When societal readiness requires foundational development, THEN Build societal awareness foundation = (TRL 1-2)',
+                    framework: 'Societal & Market Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                },
+                {
+                    id: "SOC-4",
+                    rule: 'When societal readiness is strong across all dimensions, THEN Market ready for commercial scaling = (TRL 7-8)',
+                    framework: 'Societal & Market Readiness',
+                    source: 'System Default',
+                    confidence: 0.95,
+                    active: true
+                }
+            ];
+
+            activeRules = [...defaultRules];
+            updateRulePanel();
+        }
+
+        function updateRulePanel() {
+            // Update active rules count
+            document.getElementById('activeRuleCount').textContent = activeRules.length;
+            document.getElementById('pendingRuleCount').textContent = pendingRules.length;
+            document.getElementById('pendingBadge').textContent = pendingRules.length;
+
+            // Display active rules
+            const activeRulesList = document.getElementById('activeRulesList');
+            activeRulesList.innerHTML = '';
+            
+            activeRules.forEach((rule, index) => {
+                const ruleItem = createRuleElement(rule, index, 'active');
+                activeRulesList.appendChild(ruleItem);
+            });
+
+            // Display pending rules
+            const pendingRulesList = document.getElementById('pendingRulesList');
+            if (pendingRules.length === 0) {
+                pendingRulesList.innerHTML = `
+                    <p style="color: var(--gray); font-size: 0.9rem; text-align: center; padding: 20px;">
+                        No pending rules. Upload files to generate new rules for review.
+                    </p>
+                `;
+            } else {
+                pendingRulesList.innerHTML = '';
+                pendingRules.forEach((rule, index) => {
+                    const ruleItem = createRuleElement(rule, index, 'pending');
+                    pendingRulesList.appendChild(ruleItem);
+                });
+            }
+        }
+
+        function createRuleElement(rule, index, type) {
+            const div = document.createElement('div');
+            div.className = type === 'pending' ? 'rule-item pending' : 'rule-item';
+            
+            let actionsHTML = '';
+            if (type === 'pending') {
+                actionsHTML = `
+                    <div class="rule-actions">
+                        <button class="rule-accept-btn" onclick="acceptRule(${index})">
+                            <i class="fas fa-check"></i> Accept
+                        </button>
+                        <button class="rule-reject-btn" onclick="rejectRule(${index})">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="rule-text">${rule.rule}</div>
+                <div class="rule-meta">
+                    <div>
+                        <span style="margin-right: 10px;"><strong>Framework:</strong> ${rule.framework}</span>
+                        <span style="margin-right: 10px;"><strong>Source:</strong> ${rule.source}</span>
+                        <span><strong>Confidence:</strong> ${Math.round(rule.confidence * 100)}%</span>
+                    </div>
+                </div>
+                ${actionsHTML}
+            `;
+            
+            return div;
+        }
+
+        function acceptRule(index) {
+            const rule = pendingRules[index];
+            rule.active = true;
+            activeRules.push(rule);
+            pendingRules.splice(index, 1);
+            updateRulePanel();
+            showNotification('Rule accepted and added to knowledge base', 'success');
+        }
+
+        function rejectRule(index) {
+            pendingRules.splice(index, 1);
+            updateRulePanel();
+            showNotification('Rule rejected', 'success');
+        }
+
+
+        // Update Explanation Panel
+        function updateExplanationPanel() {
+            const content = document.getElementById('explanationContent');
+            
+            if (Object.keys(explanationData.dimensions).length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No Assessment Yet</h3>
+                        <p>Complete dimension assessments to see detailed explanations of your TRL scores, active rules, and calculations.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="explanation-summary">
+                    <h3><i class="fas fa-chart-line"></i> Overall Assessment</h3>
+                    <div class="overall-trl">${explanationData.overall.trl}</div>
+                    <p style="color: var(--gray); margin-bottom: 15px;">
+                        Confidence: <strong style="color: var(--mature);">${Math.round(explanationData.overall.confidence * 100)}%</strong>
+                    </p>
+                    
+                    <div class="calculation-formula">
+                        <strong>Calculation Method:</strong><br>
+                        Overall TRL = Weighted Average of Dimension TRLs<br><br>
+                        <strong>Formula:</strong> Σ(Dimension_TRL × Confidence) / Σ(Confidence)<br><br>
+                        ${generateCalculationBreakdown()}
+                    </div>
+                    
+                    <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6;">
+                        <strong>What this means:</strong> Your autonomous vehicle readiness is at 
+                        <strong>${explanationData.overall.trl}</strong>, indicating 
+                        ${getTRLDescription(explanationData.overall.trl)}.
+                    </p>
+                </div>
+            `;
+
+            // Add dimension explanations
+            for (const [dimKey, dimData] of Object.entries(explanationData.dimensions)) {
+                html += generateDimensionExplanation(dimKey, dimData);
+            }
+
+            content.innerHTML = html;
+        }
+
+        function generateCalculationBreakdown() {
+            let breakdown = '';
+            let totalWeighted = 0;
+            let totalConfidence = 0;
+
+            for (const [key, data] of Object.entries(explanationData.dimensions)) {
+                const numeric = data.numeric || 0;
+                const confidence = data.confidence || 0;
+                totalWeighted += numeric * confidence;
+                totalConfidence += confidence;
+                
+                breakdown += `${getDimensionFullName(key)}: ${numeric.toFixed(2)} × ${confidence.toFixed(2)} = ${(numeric * confidence).toFixed(2)}<br>`;
+            }
+
+            const result = totalConfidence > 0 ? (totalWeighted / totalConfidence).toFixed(2) : 0;
+            breakdown += `<br><strong>Total:</strong> ${totalWeighted.toFixed(2)} / ${totalConfidence.toFixed(2)} = <strong style="color: var(--mature);">${result}</strong>`;
+
+            return breakdown;
+        }
+
+        function generateDimensionExplanation(dimKey, dimData) {
+            const className = getDimensionClass(dimKey);
+            const fullName = getDimensionFullName(dimKey);
+            const icon = getDimensionIcon(dimKey);
+
+            let html = `
+                <div class="dimension-explanation ${className}">
+                    <h4><i class="${icon}"></i> ${fullName}</h4>
+                    
+                    <div class="dimension-score-display">
+                        <div>
+                            <div class="score-label">Dimension TRL Score</div>
+                            <div class="score-value-large">${dimData.trl}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="score-label">Confidence</div>
+                            <div style="font-size: 1.5rem; font-weight: 600; color: var(--mature);">
+                                ${Math.round(dimData.confidence * 100)}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="margin-bottom: 15px; line-height: 1.6; color: var(--gray);">
+                        <strong>Assessment Type:</strong> ${getReasoningTypeLabel(dimData.reasoning_type)}
+                    </p>
+            `;
+
+            // Answer breakdown
+            if (dimData.answers && Object.keys(dimData.answers).length > 0) {
+                html += `
+                    <div class="answer-breakdown">
+                        <h5><i class="fas fa-list-check"></i> Your Answers:</h5>
+                `;
+
+                for (const [question, value] of Object.entries(dimData.answers)) {
+                    if (value !== null) {
+                        const answerText = getAnswerText(value);
+                        const answerClass = getAnswerClass(value);
+                        
+                        html += `
+                            <div class="answer-item">
+                                <span class="answer-label">${getQuestionShortName(question)}</span>
+                                <span class="answer-value ${answerClass}">${answerText}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Calculate average score
+                const scores = Object.values(dimData.answers).filter(v => v !== null);
+                const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2) : 0;
+                
+                html += `
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <strong>Average Score:</strong> ${avgScore} / 3.0
+                            <span style="color: var(--gray); font-size: 0.85rem; margin-left: 10px;">
+                                (${scores.length} questions answered)
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Active rules
+            html += `
+                <div class="active-rules-section">
+                    <h5><i class="fas fa-gavel"></i> Rules Applied:</h5>
+            `;
+
+            const isRuleBased = dimData.reasoning_type === 'rule_based';
+            
+            if (isRuleBased) {
+                html += `
+                    <div class="rule-match">
+                        <div class="rule-text">Expert system rule matched for ${fullName}</div>
+                        <span class="rule-status matched">✓ RULE MATCHED</span>
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: var(--gray);">
+                            Assessment was determined by explicit rule matching based on your answer patterns.
+                        </p>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="rule-match no-match">
+                        <div class="rule-text">Fuzzy inference system applied</div>
+                        <span class="rule-status not-matched">○ No Exact Rule Match</span>
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: var(--gray);">
+                            Assessment calculated using enhanced fuzzy inference with weighted scoring across ${Object.keys(dimData.answers || {}).length} factors.
+                        </p>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
+            // Recommendations
+            if (dimData.recommendations && dimData.recommendations.length > 0) {
+                html += `
+                    <div style="margin-top: 20px;">
+                        <h5 style="margin-bottom: 12px;">
+                            <i class="fas fa-bullseye"></i> Key Recommendations:
+                        </h5>
+                `;
+                dimData.recommendations.forEach(rec => {
+                    html += `
+                        <div style="background: rgba(6, 182, 212, 0.1); border-left: 3px solid var(--data); padding: 12px; margin-bottom: 10px; border-radius: 6px; font-size: 0.9rem;">
+                            <i class="fas fa-arrow-right" style="color: var(--data); margin-right: 8px;"></i>
+                            ${rec}
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            return html;
+        }
+
+        // Helper Functions
+        function getDimensionClass(key) {
+            const map = {
+                'infra': 'infrastructure',
+                'tech': 'technology',
+                'data': 'data',
+                'reg': 'regulatory',
+                'soc': 'public'
+            };
+            return map[key] || key;
+        }
+
+        function getDimensionFullName(key) {
+            const map = {
+                'infra': 'Infrastructure Readiness',
+                'tech': 'Technology Readiness',
+                'data': 'Data & Connectivity Readiness',
+                'reg': 'Regulatory & Policy Readiness',
+                'soc': 'Societal & Market Readiness'
+            };
+            return map[key] || key;
+        }
+
+        function getDimensionIcon(key) {
+            const map = {
+                'infra': 'fas fa-road',
+                'tech': 'fas fa-microchip',
+                'data': 'fas fa-database',
+                'reg': 'fas fa-gavel',
+                'soc': 'fas fa-users'
+            };
+            return map[key] || 'fas fa-cube';
+        }
+
+        function getAnswerText(value) {
+            if (value === 1) return 'Nascent';
+            if (value === 2) return 'Developing';
+            if (value === 3) return 'Mature';
+            return 'Not answered';
+        }
+
+        function getAnswerClass(value) {
+            if (value === 1) return 'nascent';
+            if (value === 2) return 'developing';
+            if (value === 3) return 'mature';
+            return '';
+        }
+
+        function getReasoningTypeLabel(type) {
+            const labels = {
+                'rule_based': 'Expert System Rule Match',
+                'enhanced_fuzzy': 'Fuzzy Inference System',
+                'hybrid_aggregation': 'Hybrid (Rules + Fuzzy)',
+                'default_fallback': 'Default Assessment'
+            };
+            return labels[type] || type;
+        }
+
+        function getQuestionShortName(key) {
+            const map = {
+                'v2x_maturity': 'V2X Technology Maturity',
+                'infrastructural_adequacy': 'Infrastructure Adequacy',
+                'fiveG_advancement': '5G Advancement',
+                'shc801_codification': 'SHC 801 Standards',
+                'ev_infra_progress': 'EV Infrastructure'
+            };
+            return map[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getTRLDescription(trl) {
+            const descriptions = {
+                'TRL 8-9': 'technology is mature and ready for full-scale deployment with proven operational capability',
+                'TRL 7-8': 'system is demonstrated in operational environment with high reliability',
+                'TRL 6-7': 'technology is validated in relevant environment showing promising results',
+                'TRL 5-6': 'components are validated in realistic conditions with growing maturity',
+                'TRL 4-5': 'technology is in development phase with basic validation completed',
+                'TRL 3-4': 'concept is proven with experimental validation in progress',
+                'TRL 2-3': 'technology is in early research stages with initial concept formulation'
+            };
+            return descriptions[trl] || 'assessment is pending or incomplete';
+        }
+
+        function trlToNumeric(trl_str) {
+            if (trl_str === "TRL 8-9") return 8.5;
+            if (trl_str === "TRL 7-8") return 7.5;
+            if (trl_str === "TRL 6-7") return 6.5;
+            if (trl_str === "TRL 5-6") return 5.5;
+            if (trl_str === "TRL 4-5") return 4.5;
+            if (trl_str === "TRL 3-4") return 3.5;
+            return 5.0;
+        }
+
+        function updateOverallExplanation() {
+            let totalWeighted = 0;
+            let totalConfidence = 0;
+            
+            for (const data of Object.values(explanationData.dimensions)) {
+                totalWeighted += data.numeric * data.confidence;
+                totalConfidence += data.confidence;
+            }
+            
+            if (totalConfidence > 0) {
+                const overallNumeric = totalWeighted / totalConfidence;
+                explanationData.overall.numeric = overallNumeric;
+                explanationData.overall.trl = numericToTrl(overallNumeric);
+                explanationData.overall.confidence = totalConfidence / Object.keys(explanationData.dimensions).length;
+            }
+        }
+
+        function numericToTrl(numeric) {
+            if (numeric >= 8.0) return "TRL 8-9";
+            if (numeric >= 7.0) return "TRL 7-8";
+            if (numeric >= 6.0) return "TRL 6-7";
+            if (numeric >= 5.0) return "TRL 5-6";
+            if (numeric >= 4.0) return "TRL 4-5";
+            return "TRL 3-4";
+        }
+
+        function resetAssessment() {
+            if (confirm('Are you sure you want to reset the assessment?')) {
+                userAnswers = [null, null, null, null, null];
+                explanationData = {
+                    overall: { trl: "TRL 0", numeric: 0, confidence: 0 },
+                    dimensions: {}
+                };
+
+                // Reset UI
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+
+                document.getElementById('overallScore').textContent = 'TRL 0';
+                document.getElementById('confidenceBadge').textContent = 'Not Assessed';
+                document.getElementById('confidenceBadge').className = 'confidence-badge confidence-low';
+                document.getElementById('infraResult').style.display = 'none';
+
+                updateAssessButton();
+                updateExplanationPanel();
+
+                showNotification('Assessment reset successfully', 'success');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 2000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(to right, #10b981, #059669)';
+            } else {
+                notification.style.background = 'linear-gradient(to right, #ef4444, #dc2626)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+             // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // ==================== EXPERT EXPLANATIONS DATABASE ====================
+        const explanationsDatabase = {
+            // Infrastructure explanations
+            infra1: {
+                nascent: {
+                    badge: "Nascent",
+                    text: "V2X technology is in early research stages with minimal real-world deployment. This indicates a need for significant R&D investment and pilot programs to establish vehicle-to-everything communication capabilities essential for autonomous operations.",
+                    impact: "High impact - V2X is foundational for AV safety and efficiency"
+                },
+                developing: {
+                    badge: "Developing", 
+                    text: "V2X technology is undergoing pilot deployments and controlled testing. Progress is visible but not yet at scale. Focus on expanding test corridors and addressing interoperability challenges between different V2X systems.",
+                    impact: "Medium impact - Making progress but requires continued investment"
+                },
+                mature: {
+                    badge: "Mature",
+                    text: "V2X technology is widely deployed and operational across major transportation corridors. Robust communication exists between vehicles, infrastructure, and other road users, enabling advanced cooperative driving functions.",
+                    impact: "Low impact - Well-established capability supporting AV deployment"
+                }
+            },
+            infra2: {
+                nascent: {
+                    badge: "Nascent",
+                    text: "5G deployment is in early stages with limited coverage and capability. This significantly constrains real-time data exchange needed for autonomous vehicle operations, particularly in dense urban environments.",
+                    impact: "Critical impact - 5G is essential for low-latency AV communications"
+                },
+                developing: {
+                    badge: "Developing",
+                    text: "5G networks are being deployed in key urban areas with expanding coverage. While functional, reliability and latency may not yet meet all AV requirements, especially for safety-critical applications.",
+                    impact: "High impact - Progress underway but gaps remain in critical areas"
+                },
+                mature: {
+                    badge: "Mature", 
+                    text: "Comprehensive 5G coverage exists with reliable low-latency performance. Network capabilities fully support autonomous vehicle requirements including real-time HD mapping, sensor data sharing, and vehicle-to-cloud communications.",
+                    impact: "Low impact - Robust connectivity infrastructure in place"
+                }
+            },
+            tech1: {
+                nascent: {
+                    badge: "Nascent",
+                    text: "Safety case development is in early stages with limited formal documentation. Basic safety principles are understood but comprehensive risk assessment and mitigation strategies are not yet established.",
+                    impact: "Critical impact - Safety cases are mandatory for regulatory approval"
+                },
+                developing: {
+                    badge: "Developing",
+                    text: "Safety cases are under development with partial documentation and validation. Key safety scenarios are identified but comprehensive coverage across all operational conditions is still evolving.",
+                    impact: "High impact - Progress visible but full safety assurance needed"
+                },
+                mature: {
+                    badge: "Mature",
+                    text: "Comprehensive safety cases are fully documented, validated, and approved. All operational scenarios are covered with proven risk mitigation strategies and continuous safety monitoring in place.",
+                    impact: "Low impact - Strong safety foundation established"
+                }
+            },
+            tech2: {
+                nascent: {
+                    badge: "Nascent", 
+                    text: "Real-world testing is limited to controlled environments with minimal public road exposure. Validation coverage is insufficient to demonstrate operational safety across diverse conditions.",
+                    impact: "Critical impact - Extensive real-world validation is essential"
+                },
+                developing: {
+                    badge: "Developing",
+                    text: "Real-world testing is expanding with increasing mileage and scenario diversity. While progress is evident, testing coverage still has gaps in edge cases and extreme conditions.",
+                    impact: "High impact - Building validation experience but needs expansion"
+                },
+                mature: {
+                    badge: "Mature",
+                    text: "Extensive real-world testing has been completed across diverse conditions and millions of miles. Comprehensive validation demonstrates safety and reliability across the entire operational design domain.",
+                    impact: "Low impact - Thorough validation completed"
+                }
+            }
+        };
+
+        // Add CSS for notification animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
